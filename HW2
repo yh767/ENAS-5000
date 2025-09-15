@@ -1,0 +1,69 @@
+cat > solve_odes.py <<'PY'
+import sympy as sp
+
+# Symbol and unknown function
+x = sp.symbols('x')
+y = sp.Function('y')
+
+# -------- Problem #7 --------
+# y'' - y' - 2y = 2x**2 + 5
+eq7 = sp.Eq(sp.diff(y(x), x, 2) - sp.diff(y(x), x) - 2*y(x), 2*x**2 + 5)
+sol7 = sp.dsolve(eq7)  # general solution with C1, C2
+
+def residual7():
+    """LHS - RHS after substituting the solution for Problem 7 (should be 0)."""
+    y_expr = sol7.rhs
+    lhs = sp.diff(y_expr, x, 2) - sp.diff(y_expr, x) - 2*y_expr
+    rhs = 2*x**2 + 5
+    return sp.simplify(lhs - rhs)
+
+# -------- Problem #10 --------
+# y'' - 4y' + 5y = 21 e^{2x}
+eq10 = sp.Eq(sp.diff(y(x), x, 2) - 4*sp.diff(y(x), x) + 5*y(x), 21*sp.exp(2*x))
+sol10 = sp.dsolve(eq10)
+
+def residual10():
+    """LHS - RHS after substituting the solution for Problem 10 (should be 0)."""
+    y_expr = sol10.rhs
+    lhs = sp.diff(y_expr, x, 2) - 4*sp.diff(y_expr, x) + 5*y_expr
+    rhs = 21*sp.exp(2*x)
+    return sp.simplify(lhs - rhs)
+
+if __name__ == "__main__":
+    sp.init_printing(use_unicode=True)
+    print("=== Problem 7 ===")
+    print("ODE: y'' - y' - 2y = 2x^2 + 5")
+    print("General solution y(x) =")
+    sp.pprint(sol7.rhs)
+    print("\nResidual (should be 0):", residual7())
+
+    print("\n=== Problem 10 ===")
+    print("ODE: y'' - 4y' + 5y = 21*exp(2x)")
+    print("General solution y(x) =")
+    sp.pprint(sol10.rhs)
+    print("\nResidual (should be 0):", residual10())
+PY
+cat > test_odes.py <<'PY'
+import sympy as sp
+from solve_odes import x, sol7, sol10, residual7, residual10
+
+def test_problem_7_residual_zero():
+    assert sp.simplify(residual7()) == 0
+
+def test_problem_10_residual_zero():
+    assert sp.simplify(residual10()) == 0
+
+def test_problem_7_substitute_constants():
+    C1, C2 = sp.symbols('C1 C2')
+    y_expr = sol7.rhs.subs({C1: 3, C2: -2})
+    lhs = sp.diff(y_expr, x, 2) - sp.diff(y_expr, x) - 2*y_expr
+    rhs = 2*x**2 + 5
+    assert sp.simplify(lhs - rhs) == 0
+
+def test_problem_10_substitute_constants():
+    C1, C2 = sp.symbols('C1 C2')
+    y_expr = sol10.rhs.subs({C1: 0.5, C2: -7})
+    lhs = sp.diff(y_expr, x, 2) - 4*sp.diff(y_expr, x) + 5*y_expr
+    rhs = 21*sp.exp(2*x)
+    assert sp.simplify(lhs - rhs) == 0
+PY
